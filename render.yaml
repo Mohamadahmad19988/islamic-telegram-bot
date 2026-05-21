@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: islamic-telegram-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 bot.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHANNEL_ID
+        value: "@noraalas"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          type: web
+          name: islamic-telegram-bot
+          property: host
+    plan: free
