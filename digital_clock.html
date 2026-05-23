@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock - Multi Time Zone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .controls input {
+            padding: 0.8rem 1.5rem;
+            border: 2px solid white;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .controls input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .clocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .clock-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .clock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .timezone-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .timezone-offset {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 1rem;
+        }
+
+        .digital-time {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            margin: 1.5rem 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .date-display {
+            font-size: 0.95rem;
+            color: #666;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .add-timezone {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .add-timezone h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .timezone-select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .remove-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: #ff5252;
+        }
+
+        .preset-timezones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .preset-btn {
+            background: #f0f0f0;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 2rem;
+            opacity: 0.8;
+        }
+
+        .analog-clock {
+            width: 150px;
+            height: 150px;
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            position: relative;
+            margin: 1rem auto;
+            background: white;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .clock-center {
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            background: #667eea;
+        }
+
+        .hour-hand {
+            width: 4px;
+            height: 40px;
+            margin-left: -2px;
+        }
+
+        .minute-hand {
+            width: 3px;
+            height: 50px;
+            margin-left: -1.5px;
+            background: #333;
+        }
+
+        .second-hand {
+            width: 2px;
+            height: 55px;
+            margin-left: -1px;
+            background: #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .digital-time {
+                font-size: 2rem;
+            }
+
+            .clocks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕐 Digital Clock</h1>
+            <p>View current time across different time zones</p>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search timezone...">
+        </div>
+
+        <div class="clocks-grid" id="clocksContainer">
+            <!-- Clocks will be generated here -->
+        </div>
+
+        <div class="add-timezone">
+            <h3>Add Custom Time Zone</h3>
+            <select class="timezone-select" id="timezoneSelect">
+                <option value="">Select a timezone...</option>
+            </select>
+            <button class="add-btn" onclick="addCustomTimezone()">+ Add Timezone</button>
+
+            <div class="preset-timezones">
+                <button class="preset-btn" onclick="addTimezone('America/New_York')">New York (EST)</button>
+                <button class="preset-btn" onclick="addTimezone('Europe/London')">London (GMT)</button>
+                <button class="preset-btn" onclick="addTimezone('Asia/Tokyo')">Tokyo (JST)</button>
+                <button class="preset-btn" onclick="addTimezone('Asia/Dubai')">Dubai (GST)</button>
+                <button class="preset-btn" onclick="addTimezone('Australia/Sydney')">Sydney (AEDT)</button>
+                <button class="preset-btn" onclick="addTimezone('Europe/Paris')">Paris (CET)</button>
+                <button class="preset-btn" onclick="addTimezone('Asia/Shanghai')">Shanghai (CST)</button>
+                <button class="preset-btn" onclick="addTimezone('America/Los_Angeles')">Los Angeles (PST)</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>⏰ Clock automatically updates every second</p>
+        </div>
+    </div>
+
+    <script>
+        // List of all available timezones
+        const allTimezones = [
+            // Americas
+            'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+            'America/Toronto', 'America/Mexico_City', 'America/Sao_Paulo', 'America/Buenos_Aires',
+            'America/Anchorage', 'America/Vancouver',
+            // Europe
+            'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid', 'Europe/Rome',
+            'Europe/Amsterdam', 'Europe/Istanbul', 'Europe/Moscow', 'Europe/Dublin',
+            // Asia
+            'Asia/Tokyo', 'Asia/Shanghai', 'Asia/Hong_Kong', 'Asia/Singapore', 'Asia/Bangkok',
+            'Asia/Dubai', 'Asia/Kolkata', 'Asia/Jakarta', 'Asia/Manila', 'Asia/Seoul',
+            // Australia
+            'Australia/Sydney', 'Australia/Melbourne', 'Australia/Brisbane', 'Australia/Perth',
+            // Africa
+            'Africa/Cairo', 'Africa/Johannesburg', 'Africa/Lagos', 'Africa/Nairobi',
+            // Pacific
+            'Pacific/Auckland', 'Pacific/Fiji', 'Pacific/Honolulu'
+        ];
+
+        let selectedTimezones = ['UTC', 'America/New_York', 'Europe/London', 'Asia/Tokyo'];
+
+        // Initialize timezone select dropdown
+        function initializeTimezoneSelect() {
+            const select = document.getElementById('timezoneSelect');
+            allTimezones.forEach(tz => {
+                const option = document.createElement('option');
+                option.value = tz;
+                option.textContent = tz.replace(/_/g, ' ');
+                select.appendChild(option);
+            });
+        }
+
+        // Add timezone to display
+        function addTimezone(timezone) {
+            if (!selectedTimezones.includes(timezone)) {
+                selectedTimezones.push(timezone);
+                updateClocks();
+            }
+        }
+
+        // Add custom timezone from dropdown
+        function addCustomTimezone() {
+            const select = document.getElementById('timezoneSelect');
+            const timezone = select.value;
+            if (timezone) {
+                addTimezone(timezone);
+                select.value = '';
+            }
+        }
+
+        // Remove timezone
+        function removeTimezone(timezone) {
+            selectedTimezones = selectedTimezones.filter(tz => tz !== timezone);
+            updateClocks();
+        }
+
+        // Get timezone offset
+        function getTimezoneOffset(timezone) {
+            const now = new Date();
+            const utcTime = now.toLocaleString('en-US', { timeZone: 'UTC' });
+            const tzTime = now.toLocaleString('en-US', { timeZone: timezone });
+            
+            const utcDate = new Date(utcTime);
+            const tzDate = new Date(tzTime);
+            
+            const offset = (tzDate - utcDate) / (1000 * 60 * 60);
+            const sign = offset >= 0 ? '+' : '-';
+            const hours = Math.floor(Math.abs(offset));
+            const minutes = Math.round((Math.abs(offset) - hours) * 60);
+            
+            return `UTC ${sign}${hours}:${String(minutes).padStart(2, '0')}`;
+        }
+
+        // Format time for timezone
+        function formatTimeForTimezone(timezone) {
+            const now = new Date();
+            const options = {
+                timeZone: timezone,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            const timeString = now.toLocaleString('en-US', options);
+            return timeString;
+        }
+
+        // Format date for timezone
+        function formatDateForTimezone(timezone) {
+            const now = new Date();
+            const options = {
+                timeZone: timezone,
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            };
+            const dateString = now.toLocaleString('en-US', options);
+            return dateString;
+        }
+
+        // Filter timezones based on search
+        function filterTimezones(searchTerm) {
+            if (!searchTerm) {
+                updateClocks();
+                return;
+            }
+
+            const filtered = selectedTimezones.filter(tz => 
+                tz.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                document.getElementById('clocksContainer').innerHTML = 
+                    '<p style="color: white; grid-column: 1/-1; text-align: center;">No timezones found</p>';
+                return;
+            }
+
+            displayClocks(filtered);
+        }
+
+        // Display clocks
+        function displayClocks(timezones = selectedTimezones) {
+            const container = document.getElementById('clocksContainer');
+            container.innerHTML = '';
+
+            timezones.forEach(timezone => {
+                const clockCard = document.createElement('div');
+                clockCard.className = 'clock-card';
+                
+                const timeString = formatTimeForTimezone(timezone);
+                const dateString = formatDateForTimezone(timezone);
+                const offset = getTimezoneOffset(timezone);
+                const displayName = timezone === 'UTC' ? 'UTC (Coordinated Universal Time)' : timezone.replace(/_/g, ' ');
+
+                clockCard.innerHTML = `
+                    <div class="timezone-name">${displayName}</div>
+                    <div class="timezone-offset">${offset}</div>
+                    <div class="digital-time">${timeString}</div>
+                    <div class="date-display">${dateString}</div>
+                    ${timezone !== 'UTC' ? `<button class="remove-btn" onclick="removeTimezone('${timezone}')">Remove</button>` : ''}
+                `;
+
+                container.appendChild(clockCard);
+            });
+        }
+
+        // Update all clocks
+        function updateClocks() {
+            displayClocks();
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            filterTimezones(e.target.value);
+        });
+
+        // Initialize
+        initializeTimezoneSelect();
+        updateClocks();
+
+        // Update clocks every second
+        setInterval(updateClocks, 1000);
+    </script>
+</body>
+</html>
